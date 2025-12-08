@@ -62,6 +62,7 @@ final class Error<T> extends Result<T> {
   /// Returned error in result
   final Exception error;
 
+  /// The stack trace associated with the error, if available.
   final StackTrace? stackTrace;
 
   @override
