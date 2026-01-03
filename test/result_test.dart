@@ -5,12 +5,12 @@ void main() {
   group('Result', () {
     group('Done', () {
       test('creates successful result with data', () {
-        const result = Result<int>.data(42);
+        final result = const Result<int>.data(42);
         expect(result, isA<Done<int>>());
       });
 
       test('stores the correct value', () {
-        const result = Result<int>.data(42);
+        final result = const Result<int>.data(42);
         switch (result) {
           case Done(:final data):
             expect(data, equals(42));
@@ -20,9 +20,9 @@ void main() {
       });
 
       test('works with different data types', () {
-        const stringResult = Result<String>.data('hello');
-        const intResult = Result<int>.data(42);
-        const boolResult = Result<bool>.data(true);
+        final stringResult = const Result<String>.data('hello');
+        final intResult = const Result<int>.data(42);
+        final boolResult = const Result<bool>.data(true);
 
         expect(stringResult, isA<Done<String>>());
         expect(intResult, isA<Done<int>>());
@@ -30,7 +30,7 @@ void main() {
       });
 
       test('can store null values', () {
-        const result = Result<String?>.data(null);
+        final result = const Result<String?>.data(null);
         switch (result) {
           case Done(:final data):
             expect(data, isNull);
@@ -52,7 +52,7 @@ void main() {
       });
 
       test('toString includes type and value', () {
-        const result = Result<int>.data(42);
+        final result = const Result<int>.data(42);
         expect(result.toString(), contains('Result<int>'));
         expect(result.toString(), contains('42'));
       });
@@ -127,14 +127,14 @@ void main() {
       });
 
       test('can create custom Unit results', () {
-        const result = Result<Unit>.data(unit);
+        final result = const Result<Unit>.data(unit);
         expect(result, isA<Done<Unit>>());
       });
     });
 
     group('Pattern matching', () {
       test('can match Done case', () {
-        const result = Result<int>.data(42);
+        final result = const Result<int>.data(42);
         var matched = false;
 
         switch (result) {
@@ -162,7 +162,7 @@ void main() {
       });
 
       test('can extract data using pattern matching', () {
-        const result = Result<int>.data(42);
+        final result = const Result<int>.data(42);
         int? extractedValue;
 
         switch (result) {
@@ -216,7 +216,7 @@ void main() {
 
       test('Task can perform async operations', () async {
         Task<int> fetchData() async {
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           return const Result.data(42);
         }
 
@@ -282,7 +282,7 @@ void main() {
           if (id <= 0) {
             return Result.error(Exception('Invalid user ID'));
           }
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
           if (id == 999) {
             return Result.error(Exception('User not found'));
           }

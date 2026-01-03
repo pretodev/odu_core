@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'result.dart';
+import 'task.dart';
 
 typedef OptimisticTask<R> = Task<R> Function();
 typedef OptimisticUpdater<T> = T Function(T currentState);
@@ -82,7 +83,10 @@ class OptimisticValue<T> {
     OptimisticUpdater<T> updater,
   ) async {
     if (_state == null) {
-      return .error(Exception('Estado não inicializado'), .current);
+      return Result.error(
+        Exception('Estado não inicializado'),
+        StackTrace.current,
+      );
     }
 
     final previousState = _state as T;

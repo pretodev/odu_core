@@ -79,10 +79,14 @@ void main() {
         final entity = TestEntity(name: 'test', value: 42);
         final after = DateTime.now();
 
-        expect(entity.createdAt.isAfter(before.subtract(Duration(seconds: 1))),
-            isTrue);
-        expect(entity.createdAt.isBefore(after.add(Duration(seconds: 1))),
-            isTrue);
+        expect(
+          entity.createdAt.isAfter(before.subtract(const Duration(seconds: 1))),
+          isTrue,
+        );
+        expect(
+          entity.createdAt.isBefore(after.add(const Duration(seconds: 1))),
+          isTrue,
+        );
       });
 
       test('sets updatedAt to now when not provided', () {
@@ -90,10 +94,14 @@ void main() {
         final entity = TestEntity(name: 'test', value: 42);
         final after = DateTime.now();
 
-        expect(entity.updatedAt.isAfter(before.subtract(Duration(seconds: 1))),
-            isTrue);
-        expect(entity.updatedAt.isBefore(after.add(Duration(seconds: 1))),
-            isTrue);
+        expect(
+          entity.updatedAt.isAfter(before.subtract(const Duration(seconds: 1))),
+          isTrue,
+        );
+        expect(
+          entity.updatedAt.isBefore(after.add(const Duration(seconds: 1))),
+          isTrue,
+        );
       });
 
       test('uses provided timestamps when given', () {

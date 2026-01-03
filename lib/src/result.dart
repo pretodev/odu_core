@@ -8,15 +8,6 @@ final class Unit {
 
 const unit = Unit._();
 
-/// Type alias for a future that resolves to a [Result].
-///
-/// ```dart
-/// Task<int> fetchData() async {
-///   return Result.data(42);
-/// }
-/// ```
-typedef Task<T> = Future<Result<T>>;
-
 /// Utility class to wrap result data
 ///
 /// Evaluate the result using a switch statement:

@@ -193,8 +193,11 @@ void main() {
 
         // Both should give same results
         for (final value in [-5, -2, 0, 3, 4]) {
-          expect(spec1.isSatisfiedBy(value), equals(spec2.isSatisfiedBy(value)),
-              reason: 'De Morgan\'s law failed for $value');
+          expect(
+            spec1.isSatisfiedBy(value),
+            equals(spec2.isSatisfiedBy(value)),
+            reason: 'De Morgan\'s law failed for $value',
+          );
         }
       });
 
@@ -203,8 +206,11 @@ void main() {
         final spec2 = IsPositive().not().and(IsEven().not());
 
         for (final value in [-5, -2, 0, 3, 4]) {
-          expect(spec1.isSatisfiedBy(value), equals(spec2.isSatisfiedBy(value)),
-              reason: 'De Morgan\'s law failed for $value');
+          expect(
+            spec1.isSatisfiedBy(value),
+            equals(spec2.isSatisfiedBy(value)),
+            reason: 'De Morgan\'s law failed for $value',
+          );
         }
       });
 

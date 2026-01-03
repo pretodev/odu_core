@@ -17,7 +17,7 @@ void main() {
         controller.add(2);
         controller.add(3);
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
         await subscription.cancel();
         await controller.close();
 
@@ -32,7 +32,7 @@ void main() {
         final subscription = optimistic.stream.listen((_) {});
 
         controller.add(42);
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Verify state is updated by checking update function works
         final result = await optimistic.update<Unit>(
@@ -59,7 +59,7 @@ void main() {
         controller.add(1);
         controller.add(2);
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         expect(values1, equals([1, 2]));
         expect(values2, equals([1, 2]));
@@ -88,19 +88,16 @@ void main() {
 
         // Initialize state
         controller.add(10);
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Perform optimistic update
-        final updateFuture = optimistic.update<Unit>(
-          () async {
-            await Future.delayed(Duration(milliseconds: 100));
-            return Result.done;
-          },
-          (current) => current + 5,
-        );
+        final updateFuture = optimistic.update<Unit>(() async {
+          await Future.delayed(const Duration(milliseconds: 100));
+          return Result.done;
+        }, (current) => current + 5);
 
         // Check that optimistic value is emitted immediately
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
         expect(values.last, equals(15)); // 10 + 5
 
         await updateFuture;
@@ -116,14 +113,14 @@ void main() {
         final subscription = optimistic.stream.listen(values.add);
 
         controller.add(10);
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         await optimistic.update<Unit>(
           () async => Result.done,
           (current) => current + 5,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Should still have the optimistic value
         expect(values.last, equals(15));
@@ -139,7 +136,7 @@ void main() {
         final subscription = optimistic.stream.listen((_) {});
 
         controller.add(10);
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         final result = await optimistic.update<String>(
           () async => const Result.data('success'),
@@ -168,7 +165,7 @@ void main() {
         final subscription = optimistic.stream.listen(values.add);
 
         controller.add(10);
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
         values.clear(); // Clear initial value
 
         await optimistic.update<Unit>(
@@ -176,7 +173,7 @@ void main() {
           (current) => current + 5,
         );
 
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Should have: optimistic value (15), then rollback (10)
         expect(values, equals([15, 10]));
@@ -192,7 +189,7 @@ void main() {
         final subscription = optimistic.stream.listen((_) {});
 
         controller.add(10);
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         final error = Exception('task failed');
         final result = await optimistic.update<Unit>(
@@ -219,7 +216,7 @@ void main() {
         final subscription = optimistic.stream.listen((_) {});
 
         controller.add(10);
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // First update fails
         await optimistic.update<Unit>(
@@ -247,7 +244,7 @@ void main() {
 
         // Start listening but don't add any values to initialize state
         final subscription = optimistic.stream.listen((_) {});
-        await Future.delayed(Duration(milliseconds: 10));
+        await Future.delayed(const Duration(milliseconds: 10));
 
         final result = await optimistic.update<Unit>(
           () async => Result.done,
@@ -269,7 +266,7 @@ void main() {
         final subscription = optimistic.stream.listen((_) {});
 
         controller.add(0);
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Perform multiple updates in sequence
         await optimistic.update<Unit>(
@@ -299,23 +296,20 @@ void main() {
         final subscription = optimistic.stream.listen(values.add);
 
         controller.add(10);
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Start optimistic update
-        final updateFuture = optimistic.update<Unit>(
-          () async {
-            await Future.delayed(Duration(milliseconds: 100));
-            return Result.done;
-          },
-          (current) => current + 5,
-        );
+        final updateFuture = optimistic.update<Unit>(() async {
+          await Future.delayed(const Duration(milliseconds: 100));
+          return Result.done;
+        }, (current) => current + 5);
 
         // Add source value while update is in progress
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
         controller.add(20);
 
         await updateFuture;
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
 
         // Should receive values from both source and optimistic streams
         expect(values.length, greaterThan(1));
@@ -373,10 +367,7 @@ void main() {
       final replacer = ListReplacer(items);
       final newItem = {'id': 2, 'name': 'Robert'};
 
-      final result = replacer.replace(
-        newItem,
-        (item) => item['id'] == 2,
-      );
+      final result = replacer.replace(newItem, (item) => item['id'] == 2);
 
       expect(result[1], equals(newItem));
       expect(result[1]['name'], equals('Robert'));
@@ -420,10 +411,7 @@ void main() {
       final replacer = ListReplacer(entities);
       final updated = {'id': 'b', 'value': 200};
 
-      final result = replacer.replace(
-        updated,
-        (entity) => entity['id'] == 'b',
-      );
+      final result = replacer.replace(updated, (entity) => entity['id'] == 'b');
 
       expect(result.length, equals(3));
       expect(result[1]['value'], equals(200));
