@@ -5,10 +5,29 @@ abstract interface class SetupTask {
   Task<Unit> call();
 }
 
+class ParallelSetup implements SetupTask {
+  const ParallelSetup(this.tasks);
+
+  final Iterable<SetupTask> tasks;
+
+  @override
+  Task<Unit> call() async {
+    final results = await TaskList.waitAll<Unit>(tasks.map((e) => e()));
+    for (final result in results) {
+      if (result is Error) {
+        return result;
+      }
+    }
+    return Result.done;
+  }
+}
+
 Future<void> setup(List<SetupTask> tasks) async {
-  final results = await TaskList.waitAll(tasks.map((e) => e()));
-  if (results.any((e) => e is Error)) {
-    throw SetupException('Setup failed', results.first as Error);
+  for (final task in tasks) {
+    final result = await task();
+    if (result is Error) {
+      throw SetupException('Setup failed', result as Error);
+    }
   }
 }
 
