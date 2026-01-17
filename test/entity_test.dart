@@ -1,20 +1,39 @@
-import 'package:odu_core/odu_core.dart' hide equals;
+import 'package:odu_core/odu_core.dart';
 import 'package:test/test.dart';
+import 'package:uuid/uuid.dart';
 
 // Test entity implementation
-class TestEntity extends Entity {
+class TestEntity extends Entity<String> {
   final String name;
   final int value;
 
-  TestEntity({
-    super.id,
-    super.createdAt,
-    super.updatedAt,
+  TestEntity._({
+    required super.id,
+    required super.createdAt,
+    required super.updatedAt,
     required this.name,
     required this.value,
+  });
+
+  factory TestEntity({
+    String? id,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    required String name,
+    required int value,
   }) {
-    uniqueProps = [name, value];
+    final now = DateTime.now();
+    return TestEntity._(
+      id: id ?? const Uuid().v4(),
+      createdAt: createdAt ?? now,
+      updatedAt: updatedAt ?? now,
+      name: name,
+      value: value,
+    );
   }
+
+  @override
+  List<Object?> get props => [name, value];
 
   TestEntity copyWith({
     String? id,
@@ -23,7 +42,7 @@ class TestEntity extends Entity {
     String? name,
     int? value,
   }) {
-    return TestEntity(
+    return TestEntity._(
       id: id ?? this.id,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -34,21 +53,41 @@ class TestEntity extends Entity {
 }
 
 // Entity with nested collections
-class ComplexEntity extends Entity {
+class ComplexEntity extends Entity<String> {
   final List<String> tags;
   final Map<String, int> scores;
   final Set<String> categories;
 
-  ComplexEntity({
-    super.id,
-    super.createdAt,
-    super.updatedAt,
+  ComplexEntity._({
+    required super.id,
+    required super.createdAt,
+    required super.updatedAt,
     required this.tags,
     required this.scores,
     required this.categories,
+  });
+
+  factory ComplexEntity({
+    String? id,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    required List<String> tags,
+    required Map<String, int> scores,
+    required Set<String> categories,
   }) {
-    uniqueProps = [tags, scores, categories];
+    final now = DateTime.now();
+    return ComplexEntity._(
+      id: id ?? const Uuid().v4(),
+      createdAt: createdAt ?? now,
+      updatedAt: updatedAt ?? now,
+      tags: tags,
+      scores: scores,
+      categories: categories,
+    );
   }
+
+  @override
+  List<Object?> get props => [tags, scores, categories];
 }
 
 void main() {
@@ -120,22 +159,39 @@ void main() {
     });
 
     group('Change tracking', () {
-      test('hasChanged is false initially', () {
-        final entity = TestEntity(name: 'test', value: 42);
+      test('hasChanged is false when createdAt equals updatedAt', () {
+        final now = DateTime.now();
+        final entity = TestEntity(
+          name: 'test',
+          value: 42,
+          createdAt: now,
+          updatedAt: now,
+        );
         expect(entity.hasChanged, isFalse);
       });
 
-      test('hasChanged becomes true after markAsChanged', () {
-        final entity = TestEntity(name: 'test', value: 42);
-        entity.markAsChanged();
+      test('hasChanged is true when updatedAt is after createdAt', () {
+        final created = DateTime(2024, 1, 1);
+        final updated = DateTime(2024, 1, 2);
+        final entity = TestEntity(
+          name: 'test',
+          value: 42,
+          createdAt: created,
+          updatedAt: updated,
+        );
         expect(entity.hasChanged, isTrue);
       });
 
-      test('markAsChanged can be called multiple times', () {
-        final entity = TestEntity(name: 'test', value: 42);
-        entity.markAsChanged();
-        entity.markAsChanged();
-        expect(entity.hasChanged, isTrue);
+      test('hasChanged is false when updatedAt is before createdAt', () {
+        final created = DateTime(2024, 1, 2);
+        final updated = DateTime(2024, 1, 1);
+        final entity = TestEntity(
+          name: 'test',
+          value: 42,
+          createdAt: created,
+          updatedAt: updated,
+        );
+        expect(entity.hasChanged, isFalse);
       });
     });
 
@@ -183,7 +239,7 @@ void main() {
         expect(entity1, isNot(equals(entity2)));
       });
 
-      test('entities with different uniqueProps are not equal', () {
+      test('entities with same ID but different props are equal', () {
         const id = 'same-id';
         final created = DateTime(2024, 1, 1);
 
@@ -201,7 +257,8 @@ void main() {
           value: 42,
         );
 
-        expect(entity1, isNot(equals(entity2)));
+        // Entities are equal based on ID only (DDD identity)
+        expect(entity1, equals(entity2));
       });
 
       test('identical entities are equal', () {
@@ -210,7 +267,7 @@ void main() {
         expect(identical(entity, entity), isTrue);
       });
 
-      test('entities with nested collections are compared deeply', () {
+      test('entities with same ID are equal regardless of nested collections', () {
         const id = 'same-id';
         final created = DateTime(2024, 1, 1);
         final updated = DateTime(2024, 1, 2);
@@ -228,21 +285,23 @@ void main() {
           id: id,
           createdAt: created,
           updatedAt: updated,
-          tags: ['a', 'b', 'c'],
-          scores: {'x': 1, 'y': 2},
-          categories: {'cat1', 'cat2'},
+          tags: ['d', 'e', 'f'],
+          scores: {'m': 99},
+          categories: {'cat3'},
         );
 
+        // Entities are equal based on ID only (DDD identity)
         expect(entity1 == entity2, isTrue);
       });
 
-      test('entities with different nested lists are not equal', () {
-        const id = 'same-id';
+      test('entities with different IDs are not equal even with same nested lists', () {
+        const id1 = 'id-1';
+        const id2 = 'id-2';
         final created = DateTime(2024, 1, 1);
         final updated = DateTime(2024, 1, 2);
 
         final entity1 = ComplexEntity(
-          id: id,
+          id: id1,
           createdAt: created,
           updatedAt: updated,
           tags: ['a', 'b', 'c'],
@@ -251,10 +310,10 @@ void main() {
         );
 
         final entity2 = ComplexEntity(
-          id: id,
+          id: id2,
           createdAt: created,
           updatedAt: updated,
-          tags: ['a', 'b', 'd'],
+          tags: ['a', 'b', 'c'],
           scores: {},
           categories: {},
         );

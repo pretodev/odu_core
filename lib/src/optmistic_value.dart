@@ -74,7 +74,7 @@ class OptimisticValue<T> {
   /// The [updater] function receives the current state and returns the new state.
   /// The new state is emitted immediately for optimistic UI updates.
   ///
-  /// The [task] is then executed asynchronously. If it returns an [Error],
+  /// The [task] is then executed asynchronously. If it returns an [Err],
   /// the state is rolled back to the previous value.
   ///
   /// Returns the [Result] from the [task] execution.
@@ -96,7 +96,7 @@ class OptimisticValue<T> {
     _optimisticController.add(newState);
 
     final result = await task();
-    if (result is Error) {
+    if (result is Err) {
       _state = previousState;
       _optimisticController.add(previousState);
     }

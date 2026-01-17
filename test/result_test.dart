@@ -1,124 +1,111 @@
-import 'package:odu_core/odu_core.dart' hide equals;
+import 'package:odu_core/odu_core.dart';
 import 'package:test/test.dart';
 
 void main() {
   group('Result', () {
-    group('Done', () {
-      test('creates successful result with data', () {
-        final result = const Result<int>.data(42);
-        expect(result, isA<Done<int>>());
+    group('Ok', () {
+      test('creates successful result with value', () {
+        final result = const Ok<int>(42);
+        expect(result, isA<Ok<int>>());
       });
 
       test('stores the correct value', () {
-        final result = const Result<int>.data(42);
+        final result = const Ok<int>(42);
         switch (result) {
-          case Done(:final data):
-            expect(data, equals(42));
-          case Error():
-            fail('Expected Done but got Error');
+          case Ok(:final value):
+            expect(value, equals(42));
         }
       });
 
       test('works with different data types', () {
-        final stringResult = const Result<String>.data('hello');
-        final intResult = const Result<int>.data(42);
-        final boolResult = const Result<bool>.data(true);
+        final stringResult = const Ok<String>('hello');
+        final intResult = const Ok<int>(42);
+        final boolResult = const Ok<bool>(true);
 
-        expect(stringResult, isA<Done<String>>());
-        expect(intResult, isA<Done<int>>());
-        expect(boolResult, isA<Done<bool>>());
+        expect(stringResult, isA<Ok<String>>());
+        expect(intResult, isA<Ok<int>>());
+        expect(boolResult, isA<Ok<bool>>());
       });
 
       test('can store null values', () {
-        final result = const Result<String?>.data(null);
+        final result = const Ok<String?>(null);
         switch (result) {
-          case Done(:final data):
-            expect(data, isNull);
-          case Error():
-            fail('Expected Done but got Error');
+          case Ok(:final value):
+            expect(value, isNull);
         }
       });
 
       test('can store complex objects', () {
         final list = [1, 2, 3];
-        final result = Result<List<int>>.data(list);
+        final result = Ok<List<int>>(list);
 
         switch (result) {
-          case Done(:final data):
-            expect(data, equals([1, 2, 3]));
-          case Error():
-            fail('Expected Done but got Error');
+          case Ok(:final value):
+            expect(value, equals([1, 2, 3]));
         }
       });
 
       test('toString includes type and value', () {
-        final result = const Result<int>.data(42);
+        final result = const Ok<int>(42);
         expect(result.toString(), contains('Result<int>'));
         expect(result.toString(), contains('42'));
       });
     });
 
-    group('Error', () {
+    group('Err', () {
       test('creates error result', () {
         final error = Exception('test error');
-        final result = Result<int>.error(error);
-        expect(result, isA<Error<int>>());
+        final result = Err<int>(error);
+        expect(result, isA<Err<int>>());
       });
 
       test('stores the correct error', () {
         final error = Exception('test error');
-        final result = Result<int>.error(error);
+        final result = Err<int>(error);
 
         switch (result) {
-          case Done():
-            fail('Expected Error but got Done');
-          case Error(:final error):
-            expect(error.toString(), contains('test error'));
+          case Err(:final value):
+            expect(value.toString(), contains('test error'));
         }
       });
 
       test('can include stack trace', () {
         final error = Exception('test error');
         final stackTrace = StackTrace.current;
-        final result = Result<int>.error(error, stackTrace);
+        final result = Err<int>(error, stackTrace);
 
         switch (result) {
-          case Done():
-            fail('Expected Error but got Done');
-          case Error(:final stackTrace):
+          case Err(:final stackTrace):
             expect(stackTrace, isNotNull);
         }
       });
 
       test('stack trace is optional', () {
         final error = Exception('test error');
-        final result = Result<int>.error(error);
+        final result = Err<int>(error);
 
         switch (result) {
-          case Done():
-            fail('Expected Error but got Done');
-          case Error(:final stackTrace):
+          case Err(:final stackTrace):
             expect(stackTrace, isNull);
         }
       });
 
       test('toString includes type and error', () {
         final error = Exception('test error');
-        final result = Result<int>.error(error);
+        final result = Err<int>(error);
         expect(result.toString(), contains('Result<int>'));
         expect(result.toString(), contains('test error'));
       });
     });
 
     group('Unit', () {
-      test('Result.done creates Result<Unit>', () {
-        final result = Result.done;
-        expect(result, isA<Done<Unit>>());
+      test('ok constant creates Result<Unit>', () {
+        expect(ok, isA<Ok<Unit>>());
       });
 
-      test('Result.done is always the same instance', () {
-        final result1 = Result.done;
-        final result2 = Result.done;
+      test('ok is always the same instance', () {
+        final result1 = ok;
+        final result2 = ok;
         expect(identical(result1, result2), isTrue);
       });
 
@@ -127,49 +114,43 @@ void main() {
       });
 
       test('can create custom Unit results', () {
-        final result = const Result<Unit>.data(unit);
-        expect(result, isA<Done<Unit>>());
+        final result = const Ok<Unit>(unit);
+        expect(result, isA<Ok<Unit>>());
       });
     });
 
     group('Pattern matching', () {
-      test('can match Done case', () {
-        final result = const Result<int>.data(42);
+      test('can match Ok case', () {
+        final result = const Ok<int>(42);
         var matched = false;
 
         switch (result) {
-          case Done():
-            matched = true;
-          case Error():
-            break;
-        }
-
-        expect(matched, isTrue);
-      });
-
-      test('can match Error case', () {
-        final result = Result<int>.error(Exception('test'));
-        var matched = false;
-
-        switch (result) {
-          case Done():
-            break;
-          case Error():
+          case Ok():
             matched = true;
         }
 
         expect(matched, isTrue);
       });
 
-      test('can extract data using pattern matching', () {
-        final result = const Result<int>.data(42);
+      test('can match Err case', () {
+        final result = Err<int>(Exception('test'));
+        var matched = false;
+
+        switch (result) {
+          case Err():
+            matched = true;
+        }
+
+        expect(matched, isTrue);
+      });
+
+      test('can extract value using pattern matching', () {
+        final result = const Ok<int>(42);
         int? extractedValue;
 
         switch (result) {
-          case Done(data: final value):
-            extractedValue = value;
-          case Error():
-            break;
+          case Ok(value: final v):
+            extractedValue = v;
         }
 
         expect(extractedValue, equals(42));
@@ -177,13 +158,11 @@ void main() {
 
       test('can extract error using pattern matching', () {
         final error = Exception('test error');
-        final result = Result<int>.error(error);
+        final result = Err<int>(error);
         Exception? extractedError;
 
         switch (result) {
-          case Done():
-            break;
-          case Error(error: final e):
+          case Err(value: final e):
             extractedError = e;
         }
 
@@ -198,58 +177,58 @@ void main() {
 
       test('async function can return Task', () async {
         Task<int> fetchData() async {
-          return const Result.data(42);
+          return const Ok(42);
         }
 
         final result = await fetchData();
-        expect(result, isA<Done<int>>());
+        expect(result, isA<Ok<int>>());
       });
 
       test('Task can return error', () async {
         Task<int> fetchData() async {
-          return Result.error(Exception('fetch failed'));
+          return Err(Exception('fetch failed'));
         }
 
         final result = await fetchData();
-        expect(result, isA<Error<int>>());
+        expect(result, isA<Err<int>>());
       });
 
       test('Task can perform async operations', () async {
         Task<int> fetchData() async {
           await Future.delayed(const Duration(milliseconds: 10));
-          return const Result.data(42);
+          return const Ok(42);
         }
 
         final result = await fetchData();
         switch (result) {
-          case Done(:final data):
-            expect(data, equals(42));
-          case Error():
-            fail('Expected Done but got Error');
+          case Ok(:final value):
+            expect(value, equals(42));
+          case Err():
+            fail('Expected Ok but got Err');
         }
       });
 
       test('Task can chain operations', () async {
         Task<int> fetchData() async {
-          return const Result.data(42);
+          return const Ok(42);
         }
 
         Task<String> processData(int value) async {
-          return Result.data('Value: $value');
+          return Ok('Value: $value');
         }
 
         final result1 = await fetchData();
         switch (result1) {
-          case Done(:final data):
-            final result2 = await processData(data);
+          case Ok(:final value):
+            final result2 = await processData(value);
             switch (result2) {
-              case Done(:final data):
-                expect(data, equals('Value: 42'));
-              case Error():
-                fail('Expected Done but got Error');
+              case Ok(:final value):
+                expect(value, equals('Value: 42'));
+              case Err():
+                fail('Expected Ok but got Err');
             }
-          case Error():
-            fail('Expected Done but got Error');
+          case Err():
+            fail('Expected Ok but got Err');
         }
       });
     });
@@ -259,60 +238,60 @@ void main() {
         Result<int> parseAge(String input) {
           final age = int.tryParse(input);
           if (age == null) {
-            return Result.error(Exception('Invalid age format'));
+            return Err(Exception('Invalid age format'));
           }
           if (age < 0 || age > 150) {
-            return Result.error(Exception('Age out of range'));
+            return Err(Exception('Age out of range'));
           }
-          return Result.data(age);
+          return Ok(age);
         }
 
         final validResult = parseAge('25');
-        expect(validResult, isA<Done<int>>());
+        expect(validResult, isA<Ok<int>>());
 
         final invalidFormatResult = parseAge('abc');
-        expect(invalidFormatResult, isA<Error<int>>());
+        expect(invalidFormatResult, isA<Err<int>>());
 
         final outOfRangeResult = parseAge('200');
-        expect(outOfRangeResult, isA<Error<int>>());
+        expect(outOfRangeResult, isA<Err<int>>());
       });
 
       test('database operation simulation', () async {
         Task<String> fetchUser(int id) async {
           if (id <= 0) {
-            return Result.error(Exception('Invalid user ID'));
+            return Err(Exception('Invalid user ID'));
           }
           await Future.delayed(const Duration(milliseconds: 10));
           if (id == 999) {
-            return Result.error(Exception('User not found'));
+            return Err(Exception('User not found'));
           }
-          return Result.data('User $id');
+          return Ok('User $id');
         }
 
         final success = await fetchUser(1);
-        expect(success, isA<Done<String>>());
+        expect(success, isA<Ok<String>>());
 
         final notFound = await fetchUser(999);
-        expect(notFound, isA<Error<String>>());
+        expect(notFound, isA<Err<String>>());
 
         final invalid = await fetchUser(-1);
-        expect(invalid, isA<Error<String>>());
+        expect(invalid, isA<Err<String>>());
       });
 
       test('void operations with Unit', () {
         Result<Unit> deleteRecord(int id) {
           if (id <= 0) {
-            return Result.error(Exception('Invalid ID'));
+            return Err(Exception('Invalid ID'));
           }
           // Perform deletion
-          return Result.done;
+          return ok;
         }
 
         final success = deleteRecord(1);
-        expect(success, isA<Done<Unit>>());
+        expect(success, isA<Ok<Unit>>());
 
         final failure = deleteRecord(-1);
-        expect(failure, isA<Error<Unit>>());
+        expect(failure, isA<Err<Unit>>());
       });
     });
   });

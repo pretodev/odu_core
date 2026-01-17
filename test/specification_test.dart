@@ -1,4 +1,4 @@
-import 'package:odu_core/odu_core.dart' hide equals;
+import 'package:odu_core/odu_core.dart';
 import 'package:test/test.dart';
 
 // Test specifications

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:odu_core/odu_core.dart' hide equals;
+import 'package:odu_core/odu_core.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -36,11 +36,11 @@ void main() {
 
         // Verify state is updated by checking update function works
         final result = await optimistic.update<Unit>(
-          () async => Result.done,
+          () async => ok,
           (current) => current + 1,
         );
 
-        expect(result, isA<Done<Unit>>());
+        expect(result, isA<Ok<Unit>>());
 
         await subscription.cancel();
         await controller.close();
@@ -93,7 +93,7 @@ void main() {
         // Perform optimistic update
         final updateFuture = optimistic.update<Unit>(() async {
           await Future.delayed(const Duration(milliseconds: 100));
-          return Result.done;
+          return ok;
         }, (current) => current + 5);
 
         // Check that optimistic value is emitted immediately
@@ -116,7 +116,7 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 50));
 
         await optimistic.update<Unit>(
-          () async => Result.done,
+          () async => ok,
           (current) => current + 5,
         );
 
@@ -139,16 +139,16 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 50));
 
         final result = await optimistic.update<String>(
-          () async => const Result.data('success'),
+          () async => const Ok('success'),
           (current) => current + 5,
         );
 
-        expect(result, isA<Done<String>>());
+        expect(result, isA<Ok<String>>());
         switch (result) {
-          case Done(:final data):
-            expect(data, equals('success'));
-          case Error():
-            fail('Expected Done');
+          case Ok(:final value):
+            expect(value, equals('success'));
+          case Err():
+            fail('Expected Ok');
         }
 
         await subscription.cancel();
@@ -169,7 +169,7 @@ void main() {
         values.clear(); // Clear initial value
 
         await optimistic.update<Unit>(
-          () async => Result.error(Exception('task failed')),
+          () async => Err(Exception('task failed')),
           (current) => current + 5,
         );
 
@@ -193,16 +193,16 @@ void main() {
 
         final error = Exception('task failed');
         final result = await optimistic.update<Unit>(
-          () async => Result.error(error),
+          () async => Err(error),
           (current) => current + 5,
         );
 
-        expect(result, isA<Error<Unit>>());
+        expect(result, isA<Err<Unit>>());
         switch (result) {
-          case Done():
-            fail('Expected Error');
-          case Error(:final error):
-            expect(error.toString(), contains('task failed'));
+          case Ok():
+            fail('Expected Err');
+          case Err(:final value):
+            expect(value.toString(), contains('task failed'));
         }
 
         await subscription.cancel();
@@ -220,17 +220,17 @@ void main() {
 
         // First update fails
         await optimistic.update<Unit>(
-          () async => Result.error(Exception('failed')),
+          () async => Err(Exception('failed')),
           (current) => current + 5,
         );
 
         // Second update succeeds
         final result = await optimistic.update<Unit>(
-          () async => Result.done,
+          () async => ok,
           (current) => current + 3,
         );
 
-        expect(result, isA<Done<Unit>>());
+        expect(result, isA<Ok<Unit>>());
 
         await subscription.cancel();
         await controller.close();
@@ -247,11 +247,11 @@ void main() {
         await Future.delayed(const Duration(milliseconds: 10));
 
         final result = await optimistic.update<Unit>(
-          () async => Result.done,
+          () async => ok,
           (current) => current + 1,
         );
 
-        expect(result, isA<Error<Unit>>());
+        expect(result, isA<Err<Unit>>());
 
         await subscription.cancel();
         await controller.close();
@@ -270,17 +270,17 @@ void main() {
 
         // Perform multiple updates in sequence
         await optimistic.update<Unit>(
-          () async => Result.done,
+          () async => ok,
           (current) => current + 1,
         );
 
         await optimistic.update<Unit>(
-          () async => Result.done,
+          () async => ok,
           (current) => current + 2,
         );
 
         await optimistic.update<Unit>(
-          () async => Result.done,
+          () async => ok,
           (current) => current + 3,
         );
 
@@ -301,7 +301,7 @@ void main() {
         // Start optimistic update
         final updateFuture = optimistic.update<Unit>(() async {
           await Future.delayed(const Duration(milliseconds: 100));
-          return Result.done;
+          return ok;
         }, (current) => current + 5);
 
         // Add source value while update is in progress

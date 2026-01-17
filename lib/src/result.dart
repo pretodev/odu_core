@@ -15,11 +15,11 @@ const ok = Ok(unit);
 /// Evaluate the result using a switch statement:
 /// ```dart
 /// switch (result) {
-///   case Done(): {
+///   case Ok(): {
 ///     print(result.value);
 ///   }
-///   case Error(): {
-///     print(result.error);
+///   case Err(): {
+///     print(result.value);
 ///   }
 /// }
 /// ```
