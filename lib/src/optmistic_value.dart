@@ -1,9 +1,9 @@
 import 'dart:async';
 
+import 'future_result.dart';
 import 'result.dart';
-import 'task.dart';
 
-typedef OptimisticTask<R> = Task<R> Function();
+typedef OptimisticTask<R> = FutureResult<R> Function();
 typedef OptimisticUpdater<T> = T Function(T currentState);
 
 /// Wraps a stream with optimistic updates that emit immediately while tasks complete.
@@ -78,7 +78,7 @@ class OptimisticValue<T> {
   /// the state is rolled back to the previous value.
   ///
   /// Returns the [Result] from the [task] execution.
-  Task<R> update<R>(
+  FutureResult<R> update<R>(
     OptimisticTask<R> task,
     OptimisticUpdater<T> updater,
   ) async {

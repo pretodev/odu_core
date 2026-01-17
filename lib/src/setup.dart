@@ -1,8 +1,8 @@
+import 'future_result.dart';
 import 'result.dart';
-import 'task.dart';
 
 abstract interface class SetupTask {
-  Task<Unit> call();
+  FutureResult<Unit> call();
 }
 
 class ParallelSetup implements SetupTask {
@@ -11,8 +11,8 @@ class ParallelSetup implements SetupTask {
   final Iterable<SetupTask> tasks;
 
   @override
-  Task<Unit> call() async {
-    final results = await TaskList.waitAll<Unit>(tasks.map((e) => e()));
+  FutureResult<Unit> call() async {
+    final results = await FutureResultList.waitAll<Unit>(tasks.map((e) => e()));
     for (final result in results) {
       if (result is Err) {
         return result;

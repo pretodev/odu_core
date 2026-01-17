@@ -170,13 +170,13 @@ void main() {
       });
     });
 
-    group('Task', () {
-      test('Task is alias for Future<Result>', () {
-        expect(Task<int>, equals(Future<Result<int>>));
+    group('FutureResult (formerly Task)', () {
+      test('FutureResult is alias for Future<Result>', () {
+        expect(FutureResult<int>, equals(Future<Result<int>>));
       });
 
-      test('async function can return Task', () async {
-        Task<int> fetchData() async {
+      test('async function can return FutureResult', () async {
+        FutureResult<int> fetchData() async {
           return const Ok(42);
         }
 
@@ -184,8 +184,8 @@ void main() {
         expect(result, isA<Ok<int>>());
       });
 
-      test('Task can return error', () async {
-        Task<int> fetchData() async {
+      test('FutureResult can return error', () async {
+        FutureResult<int> fetchData() async {
           return Err(Exception('fetch failed'));
         }
 
@@ -193,8 +193,8 @@ void main() {
         expect(result, isA<Err<int>>());
       });
 
-      test('Task can perform async operations', () async {
-        Task<int> fetchData() async {
+      test('FutureResult can perform async operations', () async {
+        FutureResult<int> fetchData() async {
           await Future.delayed(const Duration(milliseconds: 10));
           return const Ok(42);
         }
@@ -208,12 +208,12 @@ void main() {
         }
       });
 
-      test('Task can chain operations', () async {
-        Task<int> fetchData() async {
+      test('FutureResult can chain operations', () async {
+        FutureResult<int> fetchData() async {
           return const Ok(42);
         }
 
-        Task<String> processData(int value) async {
+        FutureResult<String> processData(int value) async {
           return Ok('Value: $value');
         }
 
@@ -257,7 +257,7 @@ void main() {
       });
 
       test('database operation simulation', () async {
-        Task<String> fetchUser(int id) async {
+        FutureResult<String> fetchUser(int id) async {
           if (id <= 0) {
             return Err(Exception('Invalid user ID'));
           }
