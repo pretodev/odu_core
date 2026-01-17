@@ -26,7 +26,7 @@ abstract class TaskList {
   ///
   /// If any task throws an error, the returned future completes with an error.
   static Task<List<T>> waitAllOrError<T>(Iterable<Task<T>> tasks) {
-    if (tasks.isEmpty) return Future.value(const Result.data([]));
+    if (tasks.isEmpty) return Future.value(const Ok([]));
 
     final completer = Completer<Result<List<T>>>();
     final results = List<T?>.filled(tasks.length, null);
@@ -40,17 +40,17 @@ abstract class TaskList {
         if (hasFailed) return;
 
         switch (result) {
-          case Error(error: final e, stackTrace: final s):
+          case Err(value: final e, stackTrace: final s):
             hasFailed = true;
             if (!completer.isCompleted) {
-              completer.complete(Result.error(e, s));
+              completer.complete(Err(e, s));
             }
-          case Done(data: final d):
+          case Ok(value: final d):
             results[i] = d;
             pendingCount--;
 
             if (pendingCount == 0 && !completer.isCompleted) {
-              completer.complete(Result.data(results.cast<T>()));
+              completer.complete(Ok(results.cast<T>()));
             }
         }
       });

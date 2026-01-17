@@ -8,6 +8,8 @@ final class Unit {
 
 const unit = Unit._();
 
+const ok = Ok(unit);
+
 /// Utility class to wrap result data
 ///
 /// Evaluate the result using a switch statement:
@@ -24,38 +26,74 @@ const unit = Unit._();
 sealed class Result<T> {
   const Result();
 
-  /// Creates a successful [Result] with a [Unit] value.
-  static Result<Unit> get done => const Result.data(Unit._());
+  bool get isOk => this is Ok<T>;
 
-  /// Creates a successful [Result], completed with the specified [value].
-  const factory Result.data(T value) = Done._;
+  bool get isFail => this is Err<T>;
 
-  /// Creates an error [Result], completed with the specified [error].
-  const factory Result.error(Exception error, [StackTrace? stackTrace]) =
-      Error._;
+  T unwrap() {
+    return switch (this) {
+      Ok(value: final v) => v,
+      Err(value: final e) => throw StateError('Chamou unwrap em Fail: $e'),
+    };
+  }
+
+  T unwrapOr(T defaultValue) {
+    return switch (this) {
+      Ok(value: final v) => v,
+      Err() => defaultValue,
+    };
+  }
+
+  T unwrapOrElse(T Function(Exception error) orElse) {
+    return switch (this) {
+      Ok(value: final v) => v,
+      Err(value: final e) => orElse(e),
+    };
+  }
+
+  Result<U> map<U>(U Function(T value) transform) {
+    return switch (this) {
+      Ok(value: final v) => Ok(transform(v)),
+      Err(value: final e) => Err(e),
+    };
+  }
+
+  Result<T> mapErr(Exception Function(Exception error) transform) {
+    return switch (this) {
+      Ok(value: final v) => Ok(v),
+      Err(value: final e) => Err(transform(e)),
+    };
+  }
+
+  Result<U> flatMap<U>(Result<U> Function(T value) transform) {
+    return switch (this) {
+      Ok(value: final v) => transform(v),
+      Err(value: final e) => Err(e),
+    };
+  }
 }
 
 /// Subclass of Result for values
-final class Done<T> extends Result<T> {
-  const Done._(this.data);
+final class Ok<T> extends Result<T> {
+  const Ok(this.value);
 
   /// Returned value in result
-  final T data;
+  final T value;
 
   @override
-  String toString() => 'Result<$T>.ok($data)';
+  String toString() => 'Result<$T>.ok($value)';
 }
 
 /// Subclass of Result for errors
-final class Error<T> extends Result<T> {
-  const Error._(this.error, [this.stackTrace]);
+final class Err<T> extends Result<T> {
+  const Err(this.value, [this.stackTrace]);
 
   /// Returned error in result
-  final Exception error;
+  final Exception value;
 
   /// The stack trace associated with the error, if available.
   final StackTrace? stackTrace;
 
   @override
-  String toString() => 'Result<$T>.error($error, $stackTrace)';
+  String toString() => 'Result<$T>.error($value, $stackTrace)';
 }

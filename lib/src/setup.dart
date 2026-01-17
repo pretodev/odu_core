@@ -14,18 +14,18 @@ class ParallelSetup implements SetupTask {
   Task<Unit> call() async {
     final results = await TaskList.waitAll<Unit>(tasks.map((e) => e()));
     for (final result in results) {
-      if (result is Error) {
+      if (result is Err) {
         return result;
       }
     }
-    return Result.done;
+    return ok;
   }
 }
 
 Future<void> setup(List<SetupTask> tasks) async {
   for (final task in tasks) {
     final result = await task();
-    if (result is Error) {
+    if (result is Err) {
       throw SetupException('Setup failed', result as Error);
     }
   }

@@ -83,7 +83,7 @@ class OptimisticValue<T> {
     OptimisticUpdater<T> updater,
   ) async {
     if (_state == null) {
-      return Result.error(
+      return Err(
         Exception('Estado não inicializado'),
         StackTrace.current,
       );
