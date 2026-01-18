@@ -6,87 +6,149 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **odu_core** is a Dart library providing core domain-driven design (DDD) building blocks and functional programming utilities. It includes:
 
-- **Entity system**: Base class with identity, timestamps, change tracking, and deep equality
-- **Result type**: Railway-oriented programming with sealed `Result<T>` (Ok/Err variants)
-- **Option type**: Type-safe null handling with sealed `Option<T>` (Some/None variants)
+- **Entity system**: Base classes with identity, timestamps, change tracking, and ID-based equality
+- **Result type**: Railway-oriented programming with sealed `Result<T>` (`Ok`/`Err` variants)
+- **Option type**: Type-safe null handling with sealed `Option<T>` (`Some`/`None` variants)
 - **Future extensions**: `FutureResult<T>` and `FutureOption<T>` with ergonomic async utilities
-- **Optimistic updates**: Stream-based optimistic UI state management with rollback
-- **Specification pattern**: Composable business rules with and/or/not operators
+- **Optimistic updates**: Stream-based optimistic UI state management with automatic rollback
+- **Specification pattern**: Composable business rules with `and`/`or`/`not` operators
+- **Setup utilities**: Sequential and parallel initialization task orchestration
 
 ## Development Commands
 
-### Testing
 ```bash
-dart test                    # Run all tests
-dart test test/path_test.dart  # Run a single test file
-```
+# Testing
+dart test                          # Run all tests
+dart test test/entity_test.dart    # Run a single test file
 
-### Analysis & Linting
-```bash
-dart analyze                 # Run static analysis
-dart fix --dry-run          # Preview available fixes
-dart fix --apply            # Apply automatic fixes
-```
+# Analysis & Linting
+dart analyze                       # Run static analysis
+dart fix --dry-run                 # Preview available fixes
+dart fix --apply                   # Apply automatic fixes
 
-### Building & Running
-```bash
-dart run example/odu_core_example.dart  # Run example
-dart pub get                            # Install dependencies
-dart pub upgrade                        # Upgrade dependencies
+# Dependencies
+dart pub get                       # Install dependencies
+dart pub upgrade                   # Upgrade dependencies
+
+# Running examples
+dart run example/odu_core_example.dart
 ```
 
 ## Architecture
 
-### Entity System (`lib/src/entity/`)
+### Entity System (`lib/src/entities.dart`)
 
-The `Entity` base class provides:
-- Auto-generated UUIDs (using `package:uuid`)
-- Created/updated timestamps
-- Change tracking via `markAsChanged()` and `hasChanged`
-- Deep equality using `uniqueProps` list (extend Entity and add domain properties here)
-- Custom equatable implementation with support for nested iterables, sets, and maps
+Three base classes for domain entities with different identity strategies:
 
-Key implementation detail: The `equatable.dart` part file contains Jenkins hash functions and deep comparison logic that works with nested collections.
+| Base Class | ID Type | Use Case |
+|------------|---------|----------|
+| `Entity<T>` | Generic `T` | Custom ID types (Value Objects, composite keys) |
+| `GuidEntity` | `String` (UUID) | Client-generated IDs, distributed systems |
+| `SerialEntity` | `int` | Database auto-increment IDs |
+
+Key features:
+- **Identity-based equality**: Entities with same ID and type are equal (DDD principle)
+- **Timestamps**: `createdAt`, `updatedAt` for audit tracking
+- **Change tracking**: `hasChanged` computed from timestamps (`updatedAt > createdAt`)
+- **Soft delete**: `isActive` flag with `isDeleted` convenience getter
+- **Validation hook**: Override `validate()` to enforce invariants (called in constructor)
+- **Debug props**: Override `props` getter for `toString()` output (not used for equality)
+
+Serial entity utilities:
+- `SerialEntity.unsavedId` (0) for unpersisted entities
+- `isPersisted` / `isNew` convenience getters
+
+GUID entity utilities:
+- `GuidEntity.newId()` generates UUID v4
+
+### Failure System (`lib/src/failure.dart`)
+
+Base class for domain failures:
+- `Failure` abstract class extending `Exception`
+- `EntityFailure` for entity-related validation failures
+- Extend these for domain-specific failure types
 
 ### Result Type (`lib/src/result.dart`)
 
 Railway-oriented programming pattern:
-- `Result<T>` is a sealed class with `Ok<T>` and `Err<T>` variants
-- Use pattern matching with switch statements to handle both cases
-- `FutureResult<T>` type alias for `Future<Result<T>>` (common async pattern with extension methods)
-- `Unit` type for void-like returns (use `ok` constant for success with no value)
+- `Result<T>` sealed class with `Ok<T>` and `Err<T>` variants
+- `Err` holds `Exception` and optional `StackTrace`
+- `Unit` type for void-like returns (use `ok` constant for `Ok(unit)`)
+- Use pattern matching with switch expressions
 
-### Future Extensions (`lib/src/future_result.dart` and `lib/src/future_option.dart`)
+Methods: `map`, `mapErr`, `flatMap`, `unwrap`, `unwrapOr`, `unwrapOrElse`, `isOk`, `isFail`
 
-Ergonomic async utilities for Result and Option types:
-- `FutureResult<T>` provides methods like `map`, `flatMap`, `recover`, `unwrapOr`, etc.
-- `FutureOption<T>` provides methods like `map`, `filter`, `okOr`, `unwrapOr`, etc.
-- Both support async transformations (e.g., `mapAsync`, `flatMapAsync`)
-- Timeout support with `withTimeout`
-- `FutureResultList.waitAll` and `FutureResultList.waitAllOrError` for combining multiple futures
+### Option Type (`lib/src/option.dart`)
 
-**Note:** The old `Task<T>` type alias is deprecated in favor of `FutureResult<T>`
+Type-safe null handling:
+- `Option<T>` sealed class with `Some<T>` and `None<T>` variants
+- `okOr(Exception)` converts to `Result<T>`
+
+Methods: `map`, `unwrap`, `unwrapOr`, `isSome`, `isNone`
+
+### Future Extensions (`lib/src/future_result.dart`, `lib/src/future_option.dart`)
+
+Type aliases and extension methods for async operations:
+
+**FutureResult<T>** (`Future<Result<T>>`):
+- Sync transforms: `map`, `mapErr`, `flatMap`
+- Async transforms: `mapAsync`, `mapErrAsync`, `flatMapAsync`
+- Recovery: `recover`, `recoverAsync`, `recoverWith`, `recoverWithAsync`
+- Extraction: `unwrap`, `unwrapOr`, `unwrapOrElse`, `unwrapOrElseAsync`
+- Utilities: `inspect`, `inspectErr`, `toOption`, `withTimeout`
+- Factory: `FutureResultFactory.ok()`, `.err()`, `.from()`
+
+**FutureResultList** (combining multiple futures):
+- `waitAll` - wait for all, return list of results
+- `waitAllOrError` - return `Ok(List)` if all succeed, first `Err` otherwise
+- `any` - return first `Ok`, or aggregated error if all fail
+
+**FutureOption<T>** (`Future<Option<T>>`):
+- Similar API to FutureResult with `filter`, `filterAsync`, `toNullable`
+- Factory: `FutureOptionFactory.some()`, `.none()`, `.from()`
 
 ### Optimistic Updates (`lib/src/optmistic_value.dart`)
 
 Stream-based state management with automatic rollback:
-- `OptimisticValue<T>` wraps a source stream and adds optimistic updates
-- `update()` applies updater function immediately, then runs async task (returns `FutureResult<R>`)
-- Automatically rolls back to previous state if task returns `Err`
-- Uses broadcast streams to merge source and optimistic updates
+- `OptimisticValue<T>` wraps a source stream
+- `update(task, updater)` applies updater immediately, runs async task
+- Automatically rolls back if task returns `Err`
 - `ListReplacer<T>` utility for updating items in lists by predicate
 
 ### Specification Pattern (`lib/src/specification.dart`)
 
-Composable business rule pattern:
-- Implement `Specification<T>` interface with `isSatisfiedBy(T entity)` method
-- Chain specifications using `.and()`, `.or()`, and `.not()` extension methods
-- Useful for encapsulating complex validation or filtering logic
+Composable business rules:
+- `Specification<T>` interface with `isSatisfiedBy(T entity)` method
+- Extension methods: `.and()`, `.or()`, `.not()`
+- Built-in: `AndSpecification`, `OrSpecification`, `NotSpecification`
+
+### Setup Utilities (`lib/src/setup.dart`)
+
+Initialization task orchestration:
+- `SetupTask` interface returning `FutureResult<Unit>`
+- `ParallelSetup` runs multiple tasks concurrently
+- `setup(List<SetupTask>)` runs tasks sequentially, throws `SetupException` on failure
+
+### Deprecated (`lib/src/task.dart`)
+
+- `Task<T>` - use `FutureResult<T>` instead
+- `TaskList` - use `FutureResultList` instead
 
 ## Code Style
 
-- Uses `package:lints/recommended.yaml` for linting rules
-- Requires Dart SDK ^3.10.3
-- Uses `final` classes where appropriate (Result subtypes)
-- Part/library system for entity internals
-- Const constructors for immutable types (Unit, Result variants)
+- Dart SDK: `^3.10.4`
+- Linting: `package:lints/recommended.yaml`
+- Dependencies: `uuid` (^4.5.2), `collection` (^1.19.1)
+- Use `final class` for sealed type variants
+- Use `const` constructors for immutable types
+- Pattern matching with switch expressions for Result/Option handling
+
+## Entity Creation Rules
+
+See `.claude/rules/entity-creation.md` for detailed guidelines on:
+- Choosing identity type (GUID vs Serial vs Custom)
+- Private constructor pattern
+- Required factory methods (`create`, `fromPersistence`)
+- Encapsulation (protecting collections, domain methods)
+- Validation and failure handling
+- Code smells to avoid

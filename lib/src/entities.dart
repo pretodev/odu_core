@@ -1,3 +1,4 @@
+import 'package:meta/meta.dart';
 import 'package:odu_core/src/failure.dart';
 import 'package:uuid/uuid.dart';
 
@@ -36,6 +37,7 @@ abstract class Entity<TId> {
   /// automatically during construction.
   ///
   /// Throws [EntityFailure] if validation fails.
+  @protected
   void validate() {}
 
   /// Whether this entity has been modified since creation.
