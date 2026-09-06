@@ -34,8 +34,5 @@ extension type DataJsonList._(List<Object?> _data) {
   Map<String, Object?> map(int index) => JsonParser.parseMap(itemOrNull(index));
   DataJsonObject object(int index) => DataJsonObject(itemOrNull(index));
 
-  @Deprecated('Use map(index) instead.')
-  Map<String, Object?> at(int index) => map(index);
-
   bool _validIndex(int index) => index >= 0 && index < _data.length;
 }
