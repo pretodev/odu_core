@@ -1,3 +1,5 @@
+import 'package:odu_core/odu_core.dart';
+
 /// Contract for evaluating whether an entity satisfies a rule.
 ///
 /// Implement this interface to define business rules that can be composed
@@ -20,14 +22,14 @@
 ///   print('Can drive!');
 /// }
 /// ```
-abstract interface class Specification<T>() {
+sealed class Specification<T extends Entity>() {
   /// Evaluates whether the given [entity] satisfies this specification.
   ///
   /// Returns `true` if the entity meets the rule, `false` otherwise.
   bool isSatisfiedBy(T entity);
 }
 
-extension SpecificationExtension<T> on Specification<T> {
+extension SpecificationExtension<T extends Entity> on Specification<T> {
   /// Combines this specification with [specification] using logical AND.
   ///
   /// Returns a new specification that is satisfied only when both
@@ -50,7 +52,7 @@ extension SpecificationExtension<T> on Specification<T> {
 }
 
 /// Combines two specifications and requires both to be satisfied.
-class AndSpecification<T>(
+class AndSpecification<T extends Entity>(
   final Specification<T> _right,
   final Specification<T> _left,
 ) implements Specification<T> {
@@ -60,7 +62,7 @@ class AndSpecification<T>(
 }
 
 /// Combines two specifications and requires either to be satisfied.
-class OrSpecification<T>(
+class OrSpecification<T extends Entity>(
   final Specification<T> _right,
   final Specification<T> _left,
 ) implements Specification<T> {
@@ -70,8 +72,9 @@ class OrSpecification<T>(
 }
 
 /// Negates the result of a specification.
-class NotSpecification<T>(final Specification<T> _specification)
-    implements Specification<T> {
+class NotSpecification<T extends Entity>(
+  final Specification<T> _specification,
+) implements Specification<T> {
   @override
   bool isSatisfiedBy(T entity) => !_specification.isSatisfiedBy(entity);
 }
