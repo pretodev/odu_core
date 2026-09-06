@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:odu_props_assist/src/generate_copy_with_assist.dart';
 import 'package:odu_props_assist/src/generate_props_assist.dart';
+import 'package:odu_props_assist/src/generate_to_string_assist.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -50,6 +52,28 @@ void main() {
       expect(classes['Constant'], ['id']);
       expect(classes['Mixed'], ['id', 'bodyField']);
       expect(classes['Child'], ['label']);
+
+      final declarations = unit.declarations.whereType<ClassDeclaration>();
+      final constructors = {
+        for (final declaration in declarations)
+          declaration.declaredFragment!.element.name:
+              declaration.declaredFragment!.element.constructors,
+      };
+      expect(
+        copyWithSource('Positional', constructors['Positional']!.single),
+        '  Positional copyWith({int? id, String? name}) =>\n'
+        '      .new(id ?? this.id, name ?? this.name);\n',
+      );
+      expect(
+        copyWithSource('Named', constructors['Named']!.single),
+        '  Named copyWith({int? id, String? name}) =>\n'
+        '      .new(id: id ?? this.id, name: name ?? this.name);\n',
+      );
+      expect(
+        copyWithSource('Private', constructors['Private']!.single),
+        '  Private copyWith({int? id}) =>\n'
+        '      ._(id ?? this.id);\n',
+      );
     },
   );
 
@@ -63,6 +87,17 @@ void main() {
       propsGetterSource([]),
       '  @override\n'
       '  List<Object?> get props => const <Object?>[];\n',
+    );
+  });
+
+  test('generates labeled toString methods', () {
+    expect(
+      toStringSource('Person', ['id', 'name']),
+      "  @override\n  String toString() => 'Person(id: \$id, name: \$name)';\n",
+    );
+    expect(
+      toStringSource('Empty', const []),
+      "  @override\n  String toString() => 'Empty()';\n",
     );
   });
 }

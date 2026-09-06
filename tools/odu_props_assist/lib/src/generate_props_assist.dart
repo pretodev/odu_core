@@ -3,6 +3,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
+import 'package:odu_props_assist/src/class_fields.dart';
 
 final class GeneratePropsAssist extends ResolvedCorrectionProducer {
   static const _kind = AssistKind(
@@ -29,10 +30,7 @@ final class GeneratePropsAssist extends ResolvedCorrectionProducer {
 
     final fieldNames = declaredPropsFields(declaration);
     final body = declaration.body;
-    final members = switch (body) {
-      BlockClassBody(:final members) => members,
-      EmptyClassBody() => const <ClassMember>[],
-    };
+    final members = classMembers(body);
     final getter = members
         .whereType<MethodDeclaration>()
         .where((member) => member.isGetter && member.name.lexeme == 'props')
@@ -81,14 +79,10 @@ final class GeneratePropsAssist extends ResolvedCorrectionProducer {
 /// Dart 3.13 primary-constructor form, including positional, named, `final`,
 /// `var`, constant, named, and private primary constructors.
 List<String> declaredPropsFields(ClassDeclaration declaration) {
-  final fields = declaration.declaredFragment!.element.fields
-      .where((field) => !field.isStatic && !field.isOriginEnumValues)
+  return declaredInstanceFields(declaration)
+      .map((field) => field.name)
+      .nonNulls
       .toList();
-  fields.sort(
-    (left, right) =>
-        left.firstFragment.offset.compareTo(right.firstFragment.offset),
-  );
-  return fields.map((field) => field.name).nonNulls.toList();
 }
 
 /// Builds Dart 3.13 source for a `props` getter.
