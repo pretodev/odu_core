@@ -6,14 +6,25 @@ import 'package:test/test.dart';
 void main() {
   group('ViewModel', () {
     test('emits distinct states and notifies listeners', () {
-      final viewModel = _ViewModel(1);
+      final viewModel = _StateViewModel(const _State(1));
       var calls = 0;
       viewModel.addListener(() => calls++);
 
-      viewModel.update(1);
-      viewModel.update(2);
+      viewModel.update(const _State(2));
 
-      expect(viewModel.state, 2);
+      expect(viewModel.state, const _State(2));
+      expect(calls, 1);
+    });
+
+    test('does not notify for equivalent ViewModelState values', () {
+      final viewModel = _StateViewModel(const _State(1));
+      var calls = 0;
+      viewModel.addListener(() => calls++);
+
+      viewModel.update(const _State(1));
+      viewModel.update(const _State(2));
+
+      expect(viewModel.state, const _State(2));
       expect(calls, 1);
     });
   });
@@ -114,8 +125,13 @@ void main() {
   });
 }
 
-final class _ViewModel(super.state) extends ViewModel<int> {
-  void update(int state) => emit(state);
+final class _StateViewModel(super.state) extends ViewModel<_State> {
+  void update(_State state) => emit(state);
+}
+
+final class const _State(final int count) extends ViewModelState {
+  @override
+  List<Object?> get props => [count];
 }
 
 final class const _Failure(super.failureReason) extends Failure {}
