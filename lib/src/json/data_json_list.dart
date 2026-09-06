@@ -1,30 +1,41 @@
 import 'package:odu_core/src/json/data_json_object.dart';
 import 'package:odu_core/src/json/parser.dart';
 
-/// Typed accessors for an untyped JSON array.
-extension type DataJsonList._(List<JsonValue> _data)
-    implements List<JsonValue> {
-  new(JsonValue data) : this._(JsonParser.parseList(data, (item) => item));
+/// Read-only, typed accessors for a JSON array.
+extension type DataJsonList._(List<Object?> _data) {
+  new(Object? data) : this._(JsonParser.parseList(data, (item) => item));
 
+  List<Object?> get values => _data;
   int get length => _data.length;
   bool get isEmpty => _data.isEmpty;
   bool get isNotEmpty => _data.isNotEmpty;
-  JsonValue item(int index) => _data[index];
-  JsonValue itemOrNull(int index) =>
-      index >= 0 && index < _data.length ? _data[index] : null;
-  String string(int index) => JsonParser.parseString(_data[index]);
-  String? stringOrNull(int index) => JsonParser.tryParseString(_data[index]);
-  int integer(int index) => JsonParser.parseInt(_data[index]);
-  int? integerOrNull(int index) => JsonParser.tryParseInt(_data[index]);
-  double decimal(int index) => JsonParser.parseDouble(_data[index]);
-  double? decimalOrNull(int index) => JsonParser.tryParseDouble(_data[index]);
-  bool boolean(int index) => JsonParser.parseBool(_data[index]);
-  DateTime dateTimeOrNow(int index) =>
-      JsonParser.tryParseDateTime(_data[index]) ?? DateTime.now();
+
+  Object? item(int index) => _data[index];
+  Object? itemOrNull(int index) => _validIndex(index) ? _data[index] : null;
+
+  String string(int index) => JsonParser.parseString(itemOrNull(index));
+  String? stringOrNull(int index) =>
+      JsonParser.tryParseString(itemOrNull(index));
+  int integer(int index) => JsonParser.parseInt(itemOrNull(index));
+  int? integerOrNull(int index) => JsonParser.tryParseInt(itemOrNull(index));
+  double decimal(int index) => JsonParser.parseDouble(itemOrNull(index));
+  double? decimalOrNull(int index) =>
+      JsonParser.tryParseDouble(itemOrNull(index));
+  bool boolean(int index) => JsonParser.parseBool(itemOrNull(index));
+  bool? booleanOrNull(int index) => JsonParser.tryParseBool(itemOrNull(index));
+
+  DateTime dateTimeOr(int index, DateTime fallback) =>
+      JsonParser.tryParseDateTime(itemOrNull(index)) ?? fallback;
   DateTime? dateTimeOrNull(int index) =>
-      JsonParser.tryParseDateTime(_data[index]);
-  List<T> list<T>(int index, T Function(JsonValue item) itemParser) =>
-      JsonParser.parseList(_data[index], itemParser);
-  Map<String, JsonValue> at(int index) => JsonParser.parseMap(_data[index]);
-  DataJsonObject object(int index) => DataJsonObject(_data[index]);
+      JsonParser.tryParseDateTime(itemOrNull(index));
+
+  List<T> list<T>(int index, T Function(Object? item) itemParser) =>
+      JsonParser.parseList(itemOrNull(index), itemParser);
+  Map<String, Object?> map(int index) => JsonParser.parseMap(itemOrNull(index));
+  DataJsonObject object(int index) => DataJsonObject(itemOrNull(index));
+
+  @Deprecated('Use map(index) instead.')
+  Map<String, Object?> at(int index) => map(index);
+
+  bool _validIndex(int index) => index >= 0 && index < _data.length;
 }

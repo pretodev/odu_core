@@ -24,6 +24,8 @@ void main() {
       expect(JsonParser.parseDouble(' 2.5 '), 2.5);
       expect(JsonParser.parseDouble('invalid'), 0.0);
       expect(JsonParser.tryParseDouble(null), isNull);
+      expect(JsonParser.tryParseDouble(double.nan), isNull);
+      expect(JsonParser.tryParseDouble(double.infinity), isNull);
     });
 
     test('parses supported boolean representations', () {
@@ -33,6 +35,8 @@ void main() {
       expect(JsonParser.parseBool(false), isFalse);
       expect(JsonParser.parseBool('false'), isFalse);
       expect(JsonParser.parseBool('invalid'), isFalse);
+      expect(JsonParser.tryParseBool('invalid'), isNull);
+      expect(JsonParser.tryParseBool(0), isFalse);
     });
 
     test('parses lists, maps, and dates with safe defaults', () {
@@ -42,6 +46,8 @@ void main() {
         isEmpty,
       );
       expect(JsonParser.parseMap({'id': 1}), {'id': 1});
+      expect(JsonParser.parseMap(<Object?, Object?>{'id': 1}), {'id': 1});
+      expect(JsonParser.parseMap(<Object?, Object?>{1: 'id'}), isEmpty);
       expect(JsonParser.parseMap('invalid'), isEmpty);
       final date = DateTime.utc(2025, 1, 2);
       expect(JsonParser.tryParseDateTime(date), same(date));
@@ -70,6 +76,7 @@ void main() {
       expect(data.integer('integer'), 2);
       expect(data.decimal('decimal'), 2.0);
       expect(data.boolean('boolean'), isTrue);
+      expect(data.booleanOrNull('missing'), isNull);
       expect(data.dateTimeOrNull('date'), DateTime.utc(2025, 1, 2, 3, 4, 5));
       expect(data.list('list', JsonParser.parseInt), [1, 2]);
       expect(data.map('map'), {'id': 3});
@@ -82,8 +89,7 @@ void main() {
 
     test('returns defaults and nullable values for absent fields', () {
       final data = DataJsonObject(null);
-      final before = DateTime.now();
-      final fallbackDate = data.dateTimeOrNow('missing');
+      final fallback = DateTime.utc(2020);
 
       expect(data.string('missing'), isEmpty);
       expect(data.stringOrNull('missing'), isNull);
@@ -93,7 +99,7 @@ void main() {
       expect(data.decimalOrNull('missing'), isNull);
       expect(data.boolean('missing'), isFalse);
       expect(data.dateTimeOrNull('missing'), isNull);
-      expect(fallbackDate.isBefore(before), isFalse);
+      expect(data.dateTimeOr('missing', fallback), same(fallback));
       expect(data.list<Object?>('missing', (item) => item), isEmpty);
       expect(data.map('missing'), isEmpty);
     });
@@ -122,15 +128,57 @@ void main() {
       expect(data.boolean(2), isTrue);
       expect(data.dateTimeOrNull(3), DateTime(2025, 1, 2));
       expect(data.list(4, JsonParser.parseInt), [1, 2]);
-      expect(data.at(5), {'id': 3});
+      expect(data.map(5), {'id': 3});
       expect(data.object(5).integer('id'), 3);
+      expect(data.string(99), isEmpty);
+      expect(data.integerOrNull(99), isNull);
+      expect(data.booleanOrNull(99), isNull);
+      expect(data.map(99), isEmpty);
     });
 
     test('uses an empty list for invalid input', () {
       final data = DataJsonList('invalid');
 
-      expect(data, isEmpty);
+      expect(data.isEmpty, isTrue);
       expect(data.itemOrNull(0), isNull);
     });
+
+    test('does not expose mutable collections', () {
+      final sourceList = <Object?>[1];
+      final list = DataJsonList(sourceList);
+      sourceList.add(2);
+
+      expect(list.values, [1]);
+      expect(() => list.values.add(2), throwsUnsupportedError);
+
+      final sourceMap = <String, Object?>{'id': 1};
+      final object = DataJsonObject(sourceMap);
+      sourceMap['id'] = 2;
+
+      expect(object.integer('id'), 1);
+      expect(() => object.values['id'] = 2, throwsUnsupportedError);
+    });
   });
+
+  test('parseList propagates item parser failures', () {
+    expect(
+      () => JsonParser.parseList<int>(['invalid'], JsonParser.parseInt).single,
+      returnsNormally,
+    );
+    expect(
+      () => JsonParser.parseList<int>([1], (_) => throw StateError('failed')),
+      throwsStateError,
+    );
+  });
+
+  test('JsonSerializable defines a typed JSON object contract', () {
+    const serializable = _Serializable(1);
+
+    expect(serializable.toJson(), {'id': 1});
+  });
+}
+
+final class const _Serializable(final int id) implements JsonSerializable {
+  @override
+  Map<String, Object?> toJson() => {'id': id};
 }
