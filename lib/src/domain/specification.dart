@@ -20,7 +20,7 @@
 ///   print('Can drive!');
 /// }
 /// ```
-abstract interface class Specification<T> {
+abstract interface class Specification<T>() {
   /// Evaluates whether the given [entity] satisfies this specification.
   ///
   /// Returns `true` if the entity meets the rule, `false` otherwise.
@@ -32,61 +32,46 @@ extension SpecificationExtension<T> on Specification<T> {
   ///
   /// Returns a new specification that is satisfied only when both
   /// specifications are satisfied.
-  Specification<T> and(Specification<T> specification) {
-    return AndSpecification(this, specification);
-  }
+  Specification<T> and(Specification<T> specification) =>
+      AndSpecification(this, specification);
 
   /// Combines this specification with [specification] using logical OR.
   ///
   /// Returns a new specification that is satisfied when either
   /// specification is satisfied.
-  Specification<T> or(Specification<T> specification) {
-    return OrSpecification(this, specification);
-  }
+  Specification<T> or(Specification<T> specification) =>
+      OrSpecification(this, specification);
 
   /// Negates this specification.
   ///
   /// Returns a new specification that is satisfied when this
   /// specification is not satisfied.
-  Specification<T> not() {
-    return NotSpecification(this);
-  }
+  Specification<T> not() => NotSpecification(this);
 }
 
 /// Combines two specifications and requires both to be satisfied.
-class AndSpecification<T> implements Specification<T> {
-  final Specification<T> _right;
-  final Specification<T> _left;
-
-  AndSpecification(this._right, this._left);
-
+class AndSpecification<T>(
+  final Specification<T> _right,
+  final Specification<T> _left,
+) implements Specification<T> {
   @override
-  bool isSatisfiedBy(T entity) {
-    return _right.isSatisfiedBy(entity) && _left.isSatisfiedBy(entity);
-  }
+  bool isSatisfiedBy(T entity) =>
+      _right.isSatisfiedBy(entity) && _left.isSatisfiedBy(entity);
 }
 
 /// Combines two specifications and requires either to be satisfied.
-class OrSpecification<T> implements Specification<T> {
-  final Specification<T> _right;
-  final Specification<T> _left;
-
-  OrSpecification(this._right, this._left);
-
+class OrSpecification<T>(
+  final Specification<T> _right,
+  final Specification<T> _left,
+) implements Specification<T> {
   @override
-  bool isSatisfiedBy(T entity) {
-    return _right.isSatisfiedBy(entity) || _left.isSatisfiedBy(entity);
-  }
+  bool isSatisfiedBy(T entity) =>
+      _right.isSatisfiedBy(entity) || _left.isSatisfiedBy(entity);
 }
 
 /// Negates the result of a specification.
-class NotSpecification<T> implements Specification<T> {
-  final Specification<T> _specification;
-
-  NotSpecification(this._specification);
-
+class NotSpecification<T>(final Specification<T> _specification)
+    implements Specification<T> {
   @override
-  bool isSatisfiedBy(T entity) {
-    return !_specification.isSatisfiedBy(entity);
-  }
+  bool isSatisfiedBy(T entity) => !_specification.isSatisfiedBy(entity);
 }

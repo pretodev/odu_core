@@ -1,11 +1,6 @@
 library;
 
-export 'src/entities.dart';
-export 'src/future_option.dart';
-export 'src/future_result.dart';
-export 'src/option.dart';
-export 'src/optmistic_value.dart';
-export 'src/result.dart';
-export 'src/setup.dart';
-export 'src/specification.dart';
-export 'src/task.dart';
+export 'src/domain/entity.dart';
+export 'src/domain/guid.dart';
+export 'src/domain/specification.dart';
+export 'src/fp/fp.dart';
