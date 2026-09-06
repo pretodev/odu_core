@@ -22,7 +22,7 @@ import 'package:odu_core/odu_core.dart';
 ///   print('Can drive!');
 /// }
 /// ```
-sealed class Specification<T extends Entity>() {
+abstract interface class Specification<T extends Entity>() {
   /// Evaluates whether the given [entity] satisfies this specification.
   ///
   /// Returns `true` if the entity meets the rule, `false` otherwise.
