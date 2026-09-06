@@ -1,11 +1,16 @@
 include: package:lints/recommended.yaml
 
+plugins:
+  odu_props_assist:
+    path: tools/odu_props_assist
+
 formatter:
   trailing_commas: preserve
 
 analyzer:
   exclude:
     - build/**
+    - tools/**
     - "**/*.freezed.dart"
     - "**/*.g.dart"
     - "**/*.gen.dart"
