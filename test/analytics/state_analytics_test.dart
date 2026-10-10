@@ -76,6 +76,26 @@ void main() {
     expect(event.properties, isEmpty);
   });
 
+  test('state sends all customized default properties', () async {
+    final provider = _Provider();
+    final model = _Model(
+      const _Plain(0),
+      analytics: AnalyticsManager([provider]),
+    );
+    addTearDown(model.dispose);
+    model.update(const _PropertiesTracked('shoes', 'private@example.com'));
+    await Future<void>.delayed(Duration.zero);
+
+    final event = provider.events.single;
+    expect(event.name, '_PropertiesTracked');
+    expect(event.properties, {
+      'term': 'shoes',
+      'email': 'private@example.com',
+      'source': 'search',
+    });
+    expect(() => event.properties['term'] = 'changed', throwsUnsupportedError);
+  });
+
   test('analytics is optional and initial tracked state is not sent', () {
     final model = _Model(const _Tracked(0));
     addTearDown(model.dispose);
@@ -91,23 +111,22 @@ void main() {
   });
 
   test(
-    'hidden properties are removed before reaching every provider',
+    'properties are copied and sent unchanged to every provider',
     () async {
       final source = <String, Object?>{'email': 'private', 'count': 1};
       final event = AnalyticsEvent(
         'search',
         properties: source,
-        hiddenProperties: {'email', 'missing'},
       );
       source['email'] = 'changed';
       source['count'] = 2;
-      expect(event.properties, {'count': 1});
+      expect(event.properties, {'email': 'private', 'count': 1});
       expect(() => event.properties['email'] = 'leak', throwsUnsupportedError);
       final first = _Provider();
       final second = _Provider();
       await AnalyticsManager([first, second]).track(event);
-      expect(first.events.single.properties, {'count': 1});
-      expect(second.events.single.properties, {'count': 1});
+      expect(first.events.single.properties, {'email': 'private', 'count': 1});
+      expect(second.events.single.properties, {'email': 'private', 'count': 1});
     },
   );
 
@@ -153,8 +172,7 @@ final class const _Tracked(final int value)
   List<AnalyticsEvent> get analyticsEvents => [
     AnalyticsEvent(
       'search',
-      properties: {'count': value, 'email': 'private'},
-      hiddenProperties: {'email'},
+      properties: {'count': value},
     ),
     AnalyticsEvent('loading'),
   ];
@@ -165,6 +183,20 @@ final class const _DefaultTracked(final String secret)
     with StateAnalyticsMixin {
   @override
   List<Object?> get props => [secret];
+}
+
+final class const _PropertiesTracked(final String term, final String email)
+    extends ViewModelState
+    with StateAnalyticsMixin {
+  @override
+  List<Object?> get props => [term, email];
+
+  @override
+  Map<String, Object?> get analyticsProperties => {
+    'term': term,
+    'email': email,
+    'source': 'search',
+  };
 }
 
 final class _Provider({final Completer<void>? gate, final bool fails = false})

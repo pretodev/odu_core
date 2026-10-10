@@ -54,10 +54,21 @@ abstract class const ViewModelState() extends Equatable;
 
 /// Opts a state into analytics without automatically exposing [props].
 mixin StateAnalyticsMixin on ViewModelState {
+  /// Explicit properties for the default event, independent of equality [props].
+  Map<String, Object?> get analyticsProperties => const {};
+
   /// Events dispatched when this state is emitted by a configured view model.
   ///
-  /// Defaults to one property-free event named after [runtimeType]. Override
+  /// Defaults to one event named after [runtimeType], using [analyticsProperties].
+  /// Override
   /// with stable event names for production, where type names may be obfuscated.
   /// Return an empty list to omit events. Event creation should be pure.
-  List<AnalyticsEvent> get analyticsEvents => [AnalyticsEvent('$runtimeType')];
+  /// Overriding this getter replaces the default event;
+  /// custom events must supply their own properties.
+  List<AnalyticsEvent> get analyticsEvents => [
+    AnalyticsEvent(
+      '$runtimeType',
+      properties: analyticsProperties,
+    ),
+  ];
 }

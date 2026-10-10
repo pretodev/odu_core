@@ -1,22 +1,14 @@
 import 'dart:developer' as developer;
 
 /// An event with explicitly selected properties for analytics providers.
-///
-/// [hiddenProperties] removes top-level keys before storing the payload. To
-/// hide nested personal data, exclude its containing top-level property.
 final class AnalyticsEvent(
   /// The event name. Prefer stable names independent of runtime types.
   final String name, {
   Map<String, Object?> properties = const {},
-  Set<String> hiddenProperties = const {},
 }) {
-  this
-    : properties = Map.unmodifiable({
-        for (final entry in properties.entries)
-          if (!hiddenProperties.contains(entry.key)) entry.key: entry.value,
-      });
+  this : properties = Map.unmodifiable(properties);
 
-  /// The filtered, unmodifiable payload; nested values should be immutable.
+  /// The unmodifiable payload; nested values should be immutable.
   final Map<String, Object?> properties;
 }
 
@@ -25,7 +17,7 @@ abstract interface class AnalyticsProvider() {
   /// Initializes the backend.
   Future<void> initialize();
 
-  /// Sends a filtered event to the backend.
+  /// Sends an event to the backend.
   Future<void> track(AnalyticsEvent event);
 
   /// Associates subsequent events with a user.

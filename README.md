@@ -192,7 +192,6 @@ final class const ProductSearchLoading({required final String term})
     AnalyticsEvent(
       'product_search_loading',
       properties: {'term': term},
-      hiddenProperties: {'term'}, // O termo não chega aos providers.
     ),
   ];
 }
@@ -201,3 +200,16 @@ final class const ProductSearchLoading({required final String term})
 Estados sem o mixin continuam sendo emitidos normalmente, sem analytics.
 Estados iguais e o estado inicial não geram eventos. Sem sobrescrever
 `analyticsEvents`, o mixin gera um evento com o nome do tipo e sem propriedades.
+
+Para personalizar apenas as propriedades do evento padrão, sobrescreva no estado:
+
+```dart
+@override
+Map<String, Object?> get analyticsProperties => {
+  'term': term,
+  'source': 'product_search',
+};
+```
+
+Nesse caso não é necessário sobrescrever `analyticsEvents`. Se sobrescrevê-lo,
+configure as propriedades diretamente nos eventos retornados.

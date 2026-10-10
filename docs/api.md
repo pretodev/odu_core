@@ -129,8 +129,11 @@ eventos pendentes. Testes que alteram o padrão devem restaurá-lo no teardown.
 Sem manager explícito ou padrão, o view model funciona normalmente.
 
 `StateAnalyticsMixin on ViewModelState` habilita eventos para um estado.
+Sobrescreva `analyticsProperties` para definir as propriedades do evento padrão.
+O mapa é vazio por padrão e não altera `props`.
 Seu getter `analyticsEvents` permite criar vários eventos ou retornar uma lista
-vazia. O padrão é um evento com o nome do tipo e sem propriedades; sobrescreva
+vazia. Ao sobrescrevê-lo, configure propriedades em cada evento.
+O padrão é um evento com o nome do tipo e as propriedades configuradas; sobrescreva
 com nomes estáveis para builds com ofuscação. `props` nunca é enviado
 automaticamente e continua sendo usado apenas para igualdade.
 
@@ -141,9 +144,6 @@ após a notificação, sem aguardar providers. A criação dos eventos deve ser 
 erros nessa criação são propagados. Falhas de providers são registradas pelo
 manager e não interrompem os demais providers.
 
-`AnalyticsEvent(name, properties: ..., hiddenProperties: {...})` remove as
-chaves indicadas antes de armazenar o payload em um mapa não modificável.
-A filtragem vale para chaves do primeiro nível: para ocultar dados aninhados,
-remova a propriedade que os contém. Valores aninhados devem ser imutáveis.
-A ocultação não altera o estado original nem sua igualdade e não se aplica ao
-nome do evento ou ao identificador passado para `identify`.
+`AnalyticsEvent(name, properties: ...)` copia as propriedades para um mapa
+não modificável, sem filtrar chaves. Valores aninhados devem ser imutáveis.
+Inclua no mapa apenas os dados que deseja enviar aos providers.
