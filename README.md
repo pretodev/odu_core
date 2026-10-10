@@ -160,3 +160,44 @@ dart test
 ```
 
 Todo código deve passar por análise estática e testes antes de ser entregue.
+
+## Analytics ao emitir estados
+
+Configure uma vez na inicialização da aplicação:
+
+```dart
+final manager = AnalyticsManager([/* seus providers */]);
+await manager.initialize();
+ViewModel.defaultAnalytics = manager;
+```
+
+Todos os ViewModels passam a usar esse manager automaticamente. O parâmetro
+`analytics: outroManager` continua disponível para sobrescrever o padrão em uma
+instância. `ViewModel.defaultAnalytics = null` remove o padrão, sem descartar o
+manager; seu ciclo de vida continua sob responsabilidade da aplicação.
+
+Aplique o mixin apenas nos estados que devem gerar eventos. A base dos estados
+deve estender `ViewModelState`:
+
+```dart
+sealed class const ProductSearchState() extends ViewModelState;
+
+final class const ProductSearchLoading({required final String term})
+    extends ProductSearchState with StateAnalyticsMixin {
+  @override
+  List<Object?> get props => [term];
+
+  @override
+  List<AnalyticsEvent> get analyticsEvents => [
+    AnalyticsEvent(
+      'product_search_loading',
+      properties: {'term': term},
+      hiddenProperties: {'term'}, // O termo não chega aos providers.
+    ),
+  ];
+}
+```
+
+Estados sem o mixin continuam sendo emitidos normalmente, sem analytics.
+Estados iguais e o estado inicial não geram eventos. Sem sobrescrever
+`analyticsEvents`, o mixin gera um evento com o nome do tipo e sem propriedades.

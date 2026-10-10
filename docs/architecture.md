@@ -2,10 +2,11 @@
 
 ## Superfície pública
 
-`lib/odu_core.dart` é o único entrypoint público. Ele exporta cinco módulos:
+`lib/odu_core.dart` é o único entrypoint público. Ele exporta seis módulos:
 
 | Módulo | Diretório | Responsabilidade |
 | --- | --- | --- |
+| Analytics | `lib/src/analytics` | eventos e dispatch para providers |
 | Domain | `lib/src/domain` | identidade e regras de negócio |
 | Equality | `lib/src/equality` | igualdade e hash por valor |
 | FP | `lib/src/fp` | ausência, falhas e composição funcional |
@@ -20,7 +21,8 @@ decisão explícita de API.
 
 ```text
 domain ──────> equality
-state ───────> equality + fp + Flutter foundation
+state ───────> analytics + equality + fp + Flutter foundation
+analytics ───> dart:developer
 json ────────> sem dependência dos demais módulos
 fp ──────────> sem dependência dos demais módulos
 equality ────> Flutter foundation

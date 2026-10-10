@@ -114,3 +114,36 @@ Há implementações `Command0` a `Command3`. A extensão `asAction()` converte
 funções compatíveis nesses comandos. Chamadas feitas enquanto `isWaiting` são
 ignoradas; erros inesperados restauram o estado idle e são relançados.
 
+## Analytics de estados
+
+Configure `ViewModel.defaultAnalytics = manager` uma vez na inicialização da
+aplicação. O parâmetro opcional `analytics` do construtor sobrescreve esse padrão
+por instância. Quando ele é nulo, cada emissão consulta o padrão atual, inclusive
+em ViewModels já existentes. Atribuir `null` ao padrão desabilita esse fallback;
+um manager explícito continua ativo. Para desabilitar analytics em uma instância,
+passe `AnalyticsManager([])` explicitamente.
+
+O dono do manager deve inicializá-lo e descartá-lo; o view model não controla
+seu ciclo de vida. Trocar ou limpar o padrão não descarta managers nem cancela
+eventos pendentes. Testes que alteram o padrão devem restaurá-lo no teardown.
+Sem manager explícito ou padrão, o view model funciona normalmente.
+
+`StateAnalyticsMixin on ViewModelState` habilita eventos para um estado.
+Seu getter `analyticsEvents` permite criar vários eventos ou retornar uma lista
+vazia. O padrão é um evento com o nome do tipo e sem propriedades; sobrescreva
+com nomes estáveis para builds com ofuscação. `props` nunca é enviado
+automaticamente e continua sendo usado apenas para igualdade.
+
+`emit` envia eventos somente para estados distintos com o mixin. O estado
+inicial não gera eventos. Estados sem mixin continuam atualizando o estado e
+notificando listeners. Os eventos são criados antes da atualização, e enviados
+após a notificação, sem aguardar providers. A criação dos eventos deve ser pura;
+erros nessa criação são propagados. Falhas de providers são registradas pelo
+manager e não interrompem os demais providers.
+
+`AnalyticsEvent(name, properties: ..., hiddenProperties: {...})` remove as
+chaves indicadas antes de armazenar o payload em um mapa não modificável.
+A filtragem vale para chaves do primeiro nível: para ocultar dados aninhados,
+remova a propriedade que os contém. Valores aninhados devem ser imutáveis.
+A ocultação não altera o estado original nem sua igualdade e não se aplica ao
+nome do evento ou ao identificador passado para `identify`.
