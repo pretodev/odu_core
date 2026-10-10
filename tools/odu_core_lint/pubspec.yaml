@@ -1,0 +1,10 @@
+name: odu_core_lint
+description: Shared analysis rules and bundled IDE assists for Odu Core projects.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ^3.13.2
+
+dependencies:
+  lints: ^6.0.0

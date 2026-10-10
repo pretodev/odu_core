@@ -8,7 +8,7 @@ final plugin = OduPropsPlugin();
 
 final class OduPropsPlugin extends Plugin {
   @override
-  String get name => 'Odu props assist';
+  String get name => 'Odu Core Lint';
 
   @override
   void register(PluginRegistry registry) {

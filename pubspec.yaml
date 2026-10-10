@@ -15,7 +15,8 @@ dependencies:
   # path: ^1.9.0
 
 dev_dependencies:
+  odu_core_lint:
+    path: tools/odu_core_lint
   flutter_test:
     sdk: flutter
-  lints: ^6.0.0
   test: ^1.25.6

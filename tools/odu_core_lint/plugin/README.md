@@ -59,4 +59,4 @@ dart test
 ```
 
 As regras para agentes e novos geradores estão em [GENERATION.md](GENERATION.md)
-e no [`AGENTS.md`](../../AGENTS.md) da raiz.
+e no [`AGENTS.md`](../../../AGENTS.md) da raiz.

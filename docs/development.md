@@ -5,7 +5,7 @@
 - Flutter com Dart `3.13.2` ou superior;
 - dependências resolvidas com `flutter pub get`;
 - para o plugin, dependências resolvidas separadamente em
-  `tools/odu_props_assist`.
+  `tools/odu_core_lint/plugin`.
 
 ## Validação obrigatória
 
@@ -19,7 +19,7 @@ flutter test
 No plugin:
 
 ```bash
-cd tools/odu_props_assist
+cd tools/odu_core_lint/plugin
 dart analyze
 dart test
 ```
@@ -58,13 +58,22 @@ formas sintáticas do Dart 3.13 consumidas pela ação.
 ## Geradores
 
 As convenções específicas estão em
-[`tools/odu_props_assist/GENERATION.md`](../tools/odu_props_assist/GENERATION.md).
+[`tools/odu_core_lint/plugin/GENERATION.md`](../tools/odu_core_lint/plugin/GENERATION.md).
 Ao adicionar uma ação:
 
 1. crie um producer independente em `lib/src`;
-2. registre-o em `tools/odu_props_assist/lib/main.dart`;
+2. registre-o em `tools/odu_core_lint/plugin/lib/main.dart`;
 3. use elementos resolvidos do analyzer;
 4. atualize métodos existentes em vez de duplicá-los;
 5. não ofereça a ação quando não for possível gerar código válido;
 6. adicione testes para construtores tradicionais e primários relevantes.
 
+
+## Configuração compartilhada de análise
+
+As regras ficam em `tools/odu_core_lint/lib/analysis_options.yaml`, acessíveis
+por `include: package:odu_core_lint/analysis_options.yaml`. O pacote é uma
+dependência de desenvolvimento. O plugin incluído em `tools/odu_core_lint/plugin`
+é um pacote separado, resolvido pelo Analysis Server, evitando conflitos entre
+as dependências do analyzer e as do Flutter. Valide o plugin com `dart analyze`
+e `dart test` nesse diretório. `lints` não é dependência de runtime de `odu_core`.

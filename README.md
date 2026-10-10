@@ -124,7 +124,7 @@ ignora chamadas concorrentes enquanto estiver executando.
 
 ## Geradores no editor
 
-O plugin local `tools/odu_props_assist` adiciona estas ações ao menu
+O plugin local `tools/odu_core_lint/plugin` adiciona estas ações ao menu
 `Ctrl+.`/`Cmd+.`:
 
 - **Generate props**: gera ou atualiza o getter de igualdade;
@@ -137,7 +137,7 @@ O gerador reconhece campos de construtores tradicionais e primários do Dart
 3.13, parâmetros nomeados, posicionais, herdados e construtores nomeados ou
 privados. Reinicie o Dart Analysis Server após alterar ou instalar o plugin.
 
-Detalhes: [documentação dos geradores](tools/odu_props_assist/README.md).
+Detalhes: [documentação dos geradores](tools/odu_core_lint/README.md).
 
 ## Documentação
 
@@ -153,7 +153,7 @@ flutter pub get
 flutter analyze
 flutter test
 
-cd tools/odu_props_assist
+cd tools/odu_core_lint/plugin
 dart pub get
 dart analyze
 dart test
@@ -213,3 +213,33 @@ Map<String, Object?> get analyticsProperties => {
 
 Nesse caso não é necessário sobrescrever `analyticsEvents`. Se sobrescrevê-lo,
 configure as propriedades diretamente nos eventos retornados.
+
+## Regras de análise e ferramentas de IDE
+
+Use os dois pacotes separadamente (ajuste os caminhos para seu checkout):
+
+```yaml
+dependencies:
+  odu_core:
+    path: ../odu_core
+
+dev_dependencies:
+  odu_core_lint:
+    path: ../odu_core/tools/odu_core_lint
+```
+
+No `analysis_options.yaml` do consumidor:
+
+```yaml
+include: package:odu_core_lint/analysis_options.yaml
+
+plugins:
+  odu_props_assist:
+    path: ../odu_core/tools/odu_core_lint/plugin
+```
+
+`odu_core_lint` contém as regras, formatação e o subpacote do plugin com
+**Generate props**, **Generate toString** e **Generate copyWith**. O plugin é
+resolvido separadamente pelo Analysis Server; suas dependências de analyzer não
+entram na aplicação. Reinicie o Dart Analysis Server após configurar o plugin.
+Os pacotes de ferramentas ainda são locais (`publish_to: none`).

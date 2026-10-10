@@ -1,5 +1,5 @@
 name: odu_props_assist
-description: IDE assist for generating Equatable props in Odu Core classes.
+description: Shared analysis rules and IDE assists for Odu Core projects.
 version: 0.1.0
 publish_to: none
 
@@ -12,6 +12,6 @@ dependencies:
   analyzer_plugin: 0.14.16
 
 dev_dependencies:
-  analyzer_testing: 0.4.1
   lints: ^6.0.0
+  analyzer_testing: 0.4.1
   test: ^1.25.6

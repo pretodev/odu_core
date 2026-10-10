@@ -59,7 +59,7 @@ Após essa fronteira, prefira `Object?` e tipos concretos.
 
 ## Plugin de geração
 
-`tools/odu_props_assist` é um pacote Dart separado carregado pelo Analysis
+`tools/odu_core_lint/plugin` é um pacote Dart separado carregado pelo Analysis
 Server através de `analysis_options.yaml`. Cada ação é um
 `ResolvedCorrectionProducer` independente e compartilha a descoberta de campos
 em `class_fields.dart`.

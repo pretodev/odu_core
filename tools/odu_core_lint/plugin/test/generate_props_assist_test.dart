@@ -13,7 +13,7 @@ void main() {
     'discovers fields from all Dart 3.13 primary constructor forms',
     () async {
       final directory = Directory.systemTemp.createTempSync(
-        'odu_props_assist_',
+        'odu_core_lint_',
       );
       addTearDown(() => directory.deleteSync(recursive: true));
       File('${directory.path}/pubspec.yaml').writeAsStringSync(
